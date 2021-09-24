@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-main>
+    <v-main class="pa-2">
       <v-text-field
         v-model="name"
         label="名稱"
@@ -12,7 +12,6 @@
         outlined
         label="留言"
         placeholder="說點什麼嗎？"
-        value=""
       /><br>
       <v-btn @click="sendMessage">
         送出
@@ -41,17 +40,20 @@ export default {
   },
   methods: {
     load () {
-      this.$fire.firestore.collection('messages').onSnapshot((querySnapshot) => {
+      this.$fire.firestore.collection('messages').orderBy('timestamp', 'desc').onSnapshot((querySnapshot) => {
         this.messageList = []
         querySnapshot.forEach((e) => {
-          console.log('元素:', e.data())
           this.messageList.push(e.data())
         })
       })
     },
     sendMessage () {
       this.$fire.firestore.collection('messages')
-        .add({ name: this.name, msg: this.msg, timestamp: dayjs().format() })
+        .add({
+          name: this.name,
+          msg: this.msg,
+          timestamp: this.$fireModule.firestore.FieldValue.serverTimestamp()
+        })
         .then(() => {
           this.name = ''
           this.msg = ''
